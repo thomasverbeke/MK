@@ -58,8 +58,7 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 
         
 	//constructor set data
-	public SerialReader(String port, int mode) throws Exception {
-
+	public SerialReader(String port) throws Exception {
 			getPorts();
 			isUSB =false; //TODO change isUSB implementation?
 			
@@ -148,6 +147,7 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 		
 		while (true) {
             try {
+           
             	Thread.sleep(3000); 
             	//test();
             	
