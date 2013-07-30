@@ -17,7 +17,10 @@ public class SerialWriter {
 		
 	}
 	
-	/** NOTE: Documentation talks about 4s subscription while firmware 8s?**/
+	/** NOTE: Documentation talks about 4s subscription while firmware 8s?
+	 * 	Also atm external control/ftp has not been implemented
+	 * TODO check http://forum.mikrokopter.de/topic-43135.html
+	 * **/
 	
 	public void sendCommand(String frameType){	
 		 switch (frameType) {
@@ -46,12 +49,39 @@ public class SerialWriter {
 		    	break;
 		 
 		 	case "ftpCmd":
+		 		/** (NAVI) FTP**/
+		    	System.out.println("<SERIALWRITER>FTP (not yet implemented)");
+		    	
 		 		/** NOTE: This functionality is not yet documented inside the serial command list; I noted it in the firmware however & it has been mentioned
 		 		 * on the firmware update page also.
 		 		 * **/
 		 		
 		 		//TODO Implement FTP feature
 			 break;
+			 
+		 	case "externControll":
+		 		/** (NAVI) EXTERNAL CONTROLL**/
+		    	System.out.println("<SERIALWRITER>External Ctrl (not yet implemented)");
+		    	
+		 		/** Take direct ctrl of gas, angle nick, angle roll, yaw gyro. (See external ctrl struct) 
+		 		 *  http://www.mikrokopter.de/ucwiki/en/MoteCtrl
+		 		 *  MoteCtrl has an example of the use of the extern ctrl struct (which is not documented)
+		 		 *  The following was taken from wiimote.h
+		 		 *  struct str_ExternControl {
+		 		 *  	unsigned char Digital[2];
+		 		 *  	unsigned char RemoteButtons; 
+		 		 *  	signed char   Nick;  
+		 		 *  	signed char   Roll; 
+		 		 *  	signed char   Gier;
+		 		 *  	unsigned char Gas; 
+		 		 *  	signed char   Hight;  
+		 		 *  	unsigned char free; 
+		 		 *  	unsigned char Frame;
+		 		 *  	unsigned char Config;
+		 		 *  }
+		 		 *  
+		 		 * **/
+		 		break;
 			 
 		 	case "BLStatus":
 		 		/** (NAVI) BL CTRL STATUS 
@@ -204,11 +234,18 @@ public class SerialWriter {
 		    	break;
 		    	
 		    case "EngineTest":
-		    	/** (??) ENGINE TEST**/
+		    	/** (FLIGHT) ENGINE TEST
+		    	 * **/
+		    	System.out.println("<SERIALWRITER>Redirect Uart");	    	
+		    	
+			 	//param: 1 byte 0x00 for FC; OxO1 for MK3MAG; 0x02 for MKGPS according to http://www.mikrokopter.de/ucwiki/en/SerialProtocol
+			 	//int[] param = new int[0];
+			 	//param[0] = 0x00;
+			 	//encoder.send_command(2,'u',param);
+			 	//use magic packet to return to navi
 		    	
 		    	System.out.println("<SERIALWRITER>EngineTest");
 
-	    		//TODO Switch to flightctrl
 	    		/** (FLIGHT) Engine Test **/
 	    		int val = 0;
 	    		String data = "10";
@@ -228,6 +265,8 @@ public class SerialWriter {
 	    		motor[5] = val;
 	    		//encoder.send_command(1,'t',motor);
 
+	    		//TODO send magic pakket!!
+	    		
 		    	break;
 
 		    	

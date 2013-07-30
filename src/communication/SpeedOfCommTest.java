@@ -1,5 +1,7 @@
 package communication;
 
+import java.util.logging.Logger;
+
 public class SpeedOfCommTest {
 	/** 
 	 *  This class is written for the purpose of testing and documenting speed of frame transmission.
@@ -25,7 +27,7 @@ public class SpeedOfCommTest {
 		//send a simple serial wait a number of ms
 		//resend another
 		
-		
+		Logger logger = Logger.getLogger("mylogger");
 		
 	}
 }
