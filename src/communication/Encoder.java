@@ -11,6 +11,11 @@ package communication;
 import java.io.OutputStream;
 import java.util.Arrays;
 
+/** Notes
+ * 
+ * I have noticed sending frames without having a delay in the codes causes problems for the MK. (I ignores send commands... => Investigate)
+ * 
+ * **/
 
 public class Encoder {
 
@@ -167,6 +172,10 @@ public class Encoder {
        return false;
    }
    
+    /** When re-directing the UART using the 'u' cmd frame; we need a way to switch back to navi-ctrl.
+     * 	This happens by sending a so called "magic packet"
+     * 	"0x1B,0x1B,0x55,0xAA,0x00" 
+     * **/
     public synchronized void send_magic_packet() {
 
        //DataStorage.statusBar.uartTX.toggle();

@@ -24,6 +24,10 @@ import datatypes.*;
 
 public class SerialReader extends CommunicationBase implements Runnable,SerialPortEventListener {
 	
+	/** The main purpose of the class is to setup the serial connection with the MK.
+	 *  While also allowing for some functions to be used externally. 
+	 *  In some debug/test situations it might come in handy to manually assemble packets,...  **/
+	
 	static CommPortIdentifier portId;
 	static CommPortIdentifier saveportId;
 	SerialPort serialPort;
