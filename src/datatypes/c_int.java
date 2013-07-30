@@ -43,6 +43,19 @@ public abstract class c_int {
         }
     }
 
+    /** loadFromInt() function 
+     * 	@param decodedDataFrame : int[] containing the whole decoded data frame
+     *  @param dataPointer : indicates starting position of data in the decodedDataFrame
+     *  
+	 * --Frame Structure-- (http://www.mikrokopter.de/ucwiki/en/SerialProtocol)
+	 * 	0 - Start-Byte: 			'#'
+	 * 	1 - Address Byte: 			'a'+ Addr
+	 * 	2 - ID-Byte:				'V','D' etc'
+	 * 	3 - n Data-Bytes coded: 	"modified-base64"
+	 * 	? - CRC-Byte1:				variable
+	 * 	? - CRC-Byte2:				variable
+	 * 	? - Stop-Byte:				'\r'
+	**/
     //dataPointer is always 3
     public void loadFromInt(int[] decodedDataFrame, int dataPointer) {
         if (allAttribs != null && allAttribs.size() > 0) {
@@ -97,30 +110,29 @@ public abstract class c_int {
     }
 
 
-    /**
-     * @author Claas Anders "CaScAdE" Rathje
-     */
-    public static byte[] getbytes(Object obj) throws java.io.IOException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(bos);
-        oos.writeObject(obj);
-        oos.flush();
-        oos.close();
-        bos.close();
-        byte[] data = bos.toByteArray();
-        return data;
-    }
-
+   /** getAsInt() function
+    * 
+    *  will convert all c_int datatypes (u8,u16,u32,s8,s16,s32) to an int[] where int[0] contains the first 8 bits, int[1] the next 8 bits,...
+    *  
+    * **/
     public int[] getAsInt() {
         if (allAttribs == null) {
+        	//convert data
             int[] ret = new int[length / 8];
             for (int i = 0; i < ret.length; i++) {
+            	//if datatypes has more than 8 bits; we will move the bits around (>> shift 8 bits to the right)
+            	//By ANDing with 0xff we retain/select only the lowest 8 bits
+            	//00000000 00000000 00000000 11111111
+            	//this way we get to contain all information inside ret[]
+            	//more info: http://stackoverflow.com/questions/3845834/understanding-java-bytes
                 ret[ret.length - 1 - i] = (char) (0xff & (value >> ((ret.length - i - 1) * 8)));
             }
             return ret;
         } else {
+        	//loop over all attributes
             int[] ret = new int[0];
             for (c_int o : allAttribs) {
+            	//we concat all the converted data
                 ret = concatArray(ret, o.getAsInt());
             }
             return ret;

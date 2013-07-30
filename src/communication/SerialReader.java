@@ -19,7 +19,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import gnu.io.*;
-//import javax.comm.*; Doesn't work with javax.com
 
 import datatypes.*;
 
@@ -37,7 +36,10 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 	//Encode encoder;
 	BlockingQueue<ArrayList> writeQueue = new LinkedBlockingQueue<ArrayList>();
 	 
-	//map our CommPorts
+	/** getPorts method
+	 * Mapping the (serial) ports to a HashMap
+	 * source: http://rxtx.qbang.org/wiki/index.php/Discovering_comm_ports
+	 * **/
 	public static HashMap<String, CommPortIdentifier> getPorts() {
         if (portMap == null) {
             portMap = new HashMap<String, CommPortIdentifier>();
@@ -45,7 +47,8 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
             System.out.println("Printing ports:");
            
             while (portList.hasMoreElements()) {
-                portId = (CommPortIdentifier) portList.nextElement();     
+                portId = (CommPortIdentifier) portList.nextElement();   
+                //we are only interested in the serial ports
                 if (portId.getPortType() == CommPortIdentifier.PORT_SERIAL) {
                     portMap.put(portId.getName(), portId);
                     System.out.println("-portName: " + portId.getName() + "   -portID: " + portId);
@@ -55,14 +58,20 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
         return portMap;
     }
 
-
+	public SerialReader(){
+		
+	}
         
-	//constructor set data
-	public SerialReader(String port) throws Exception {
+	/** SerialReader Method 
+	 * @param port : Port to connect with; if port is null a default port is choosen depending on the operating system
+	 * 
+	 *  List ports
+	 *  Connect trough default port with MK hardware.
+	 * **/
+	public void Listen(String port) throws Exception {
 			getPorts();
 			isUSB =false; //TODO change isUSB implementation?
 			
-			//TODO Check for correct implementation default port
 			String defaultPort;
 			 
 			// determine the name of the serial port on several operating systems
@@ -85,17 +94,19 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 	        //no port set -> take default port
 	        if (port != null) {
 	            defaultPort = port;
+	            
+	        } else {
+	        	 System.out.println("No port set: using default port :" + defaultPort);
 	        }
 
-
-	        System.out.println("Set default port to " + defaultPort);
 
 	        // parse ports and if the default port is found, initialized the reader
 	       
 	        if (!portMap.keySet().contains(defaultPort)) {
 	            System.out.println("port " + defaultPort + " not found.");
-	            System.out.println("Exiting the program now...");
-	            System.exit(0);
+	            System.out.println("Could not connect with default or chosen port");
+	            return;
+	           // System.exit(0);
 	      
 	        } else {  	
 	        	 portId = portMap.get(defaultPort);
@@ -125,47 +136,16 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 	     		 thread.start();
 	             **/
 	        }     
-	        
-	        //TODO Update this; we need to put in our DataStorage class
-			
-		
-		
-		//String data = "New data has arrived";
-		//queue.add(data);
-		// start the read thread
+	
         readThread = new Thread(this);
         readThread.start(); 
-        
-        //TODO Re-add when testing with serial port enabled
-        //encoder.send_command(0,'o',20);
 		
 	}
 
 	public void run() {
-		// Communicate with serial port; store data in class
-		//TODO there was a timer here; check it
-		
 		while (true) {
-            try {
-           
+            try {          
             	Thread.sleep(3000); 
-            	//test();
-            	
-            	
-            	//demo
-            	
-            	//int interval = 100;     //multiplied by 10 and then used as miliseconds -> 1 second; Subsciption needs to be renewed every 4s
-                //encoder.send_command(0,'d',interval);
-                
-       
-                
-            	//int num = (int) (Math.random() * 100);
-    			//queue.add("Data: "+num); //BOGUS DATA
-	
-                //encoder.send_command(0,'o',20);           	
-         		//TODO We should only replace the attribute when data is new; so we should have a way of knowing if data is new or not
-         	
-         		
             } catch (InterruptedException e) {
             	System.out.println("Interrupted Exception");
             }
@@ -184,12 +164,21 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 	//volatile boolean NewDataRecieved = false;
 	int recievingBytes = 0;
 	 
+	/** serialEvent method
+	 * 	@param event: handles port events
+	 *  Important to note we use the RXTX (http://rxtx.qbang.org/wiki/index.php/Download)
+	 *  For specific platforms other jars & dll might be needed >> check docs 
+	 *  The implementation does however suffer from a bug which also caused my system (OSX 10.8.2) to freeze when using debug mode 
+	 *  http://serialio.com/support/jspCommAPI.php might be a better alternative: INVESTIGATE if time?? 
+	 *  http://stackoverflow.com/questions/12317576/stable-alternative-to-rxtx
+	 * 
+	 * **/
 	public void serialEvent(SerialPortEvent event) {
 		
-	        //System.out.println("SERIAL EVENT");
 	        switch (event.getEventType()) {
 	            //http://docs.oracle.com/cd/E17802_01/products/products/javacomm/reference/api/javax/comm/SerialPortEvent.html
-	            case SerialPortEvent.BI:    //break interrupt
+	            //we are not using javax.comm here but the page provides information on the general spec
+	        	case SerialPortEvent.BI:    //break interrupt
 	            case SerialPortEvent.OE:    //overrun error
 	            case SerialPortEvent.FE:    //framing error
 	            case SerialPortEvent.PE:    //parity error
@@ -206,10 +195,10 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 	                        int numBytes = inputStream.read(readBuffer);
 	                        int foo = 0;
 	                        //TODO remove magic pakket handler (+ check if can be removed)
-	                        /** SELF: WHAT IS HAPPENING HERE? MAGIC PACKET
+	                        /** MAGIC PACKET
 	                         *  http://forum.mikrokopter.de/topic-14090.html
 	                         *  Magic packet to switch to navi-ctrl
-	                         *  Should not matter; could be removed; code is emulating MK firmware
+	                         *  check in FIRMWARE
 	                         * 
 	                         **/
 	                        //"0x1B,0x1B,0x55,0xAA,0x00"
@@ -241,12 +230,16 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 	        }
 	    }
 	
+	
+	/** UART_vect method
+	 * @param SerialCharacter
+	 *  Recieves serialcharacters from SerialPort to built up a MK serial frame
+	 *  Once the frame has been assembled it is decoded in a new thread
+	 *  Check http://www.mikrokopter.de/ucwiki/en/SerialProtocol for information about serial protocol
+	 * **/
+	
 	private void UART_vect(char SerialCharacter) {
-    	//System.out.println("inside loop");
-       
-    	//System.out.println("buffer_ "+SerialCharacter);
-    	//System.out.println("state_"+UartState);
-    	
+
     	//overflow check
     	if (buf_ptr >= MAX_SIZE_BUFFER){
     		UartState = 0;
@@ -282,15 +275,8 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
             	
             	final int RxdBuffer_work[] = new int[MAX_SIZE_BUFFER];
             	System.arraycopy(RxdBuffer, 0, RxdBuffer_work, 0, RxdBuffer.length);
-            	
-//            	DataStorage.executors.submit(new Runnable() {
-//                    public void run() {
-//                    	//System.out.println("start decoding in a new thread");           	
-//                    	decode_buffer(RxdBuffer_work);
-//                    }
-//                }); 
-            	
-            	Thread thread = new Thread(new Runnable(){
+
+            		Thread thread = new Thread(new Runnable(){
 
 					@Override
 					public void run() {
@@ -352,13 +338,18 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
     int dataPointer = 0;
     
     /** 
+     * Decode64 method
+     * Frame is encoded based on a special version of base64 encoding system. This code was based on work from:
      * @author Claas Anders "CaScAdE" Rathje
      * @author Marcus -LiGi- Bueschleb
-     * http://github.com/ligi/DUBwise/blob/master/shared/src/org/ligi/ufo/MKCommunicator.java
+     * which in turn looked at the decoding from the open source firmware & translated it to java
+     * http://svn.mikrokopter.de/
+     * v0.28i mkprotocol.c
+     * 
      * **/
 	public int[] Decode64(int[] RxdBuffer) {
        
-		/** --Protocol-- (http://www.mikrokopter.de/ucwiki/en/SerialProtocol)
+		/** --Frame Structure-- (http://www.mikrokopter.de/ucwiki/en/SerialProtocol)
         * 	Start-Byte: 			'#'
         * 	Address Byte: 			'a'+ Addr
         * 	ID-Byte:				'V','D' etc'
@@ -419,7 +410,13 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
     public static String[] names = new String[32];
     public static int name_counter = 0;
     
-	private void decode_buffer(int[] dataFrame) {
+    
+    /** decode_buffer method
+     * @param dataFrame encoded dataFrame
+     * 
+     * main workhorse of the system: differentiate commands and act accordingly
+     * **/
+	public void decode_buffer(int[] dataFrame) {
 		//TODO implement adding to the queue for each element
 		String data = "New data has arrived";
 		//queue.add(data);
@@ -454,7 +451,7 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 	        * 	Stop-Byte:				'\r'
 	     */
 		
-		int[] decodedDataFrame = Decode64(dataFrame); //decode the frame; 
+		int[] decodedDataFrame = Decode64(dataFrame); //DECODE THE FRAME; 
 		
 		 /**  
          * REMARK!
@@ -476,15 +473,9 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 		                u16 _echoPattern = new u16("loaded");
 		                _echoPattern.loadFromInt(decodedDataFrame, dataPointer);
 		                
-		                System.out.println("<Z> Returns: EchoPattern");
-		                //System.out.println("u16: " + _echoPattern.value);
-		                
-		                
-		                ArrayList serialLinkTest = new ArrayList();                 
-		                serialLinkTest.add("serialTest");	//set ID
-		                serialLinkTest.add(_echoPattern.value);
-		                readQueue.add(serialLinkTest);	
-		                
+		                System.out.println("<Z> Returns: EchoPattern");		                
+		                System.out.println("u16: " + _echoPattern.value);
+
 		                break;    
 		                            
 		            case 'E':   // Feedback from Error Text Request; Error Str from Navi
@@ -493,10 +484,7 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 		                char errorMessage= (char) decodedDataFrame[dataPointer];
 		                System.out.println(errorMessage);
 		                
-		                ArrayList errorMsg = new ArrayList();                 
-		                errorMsg.add("errorMsg");	//set ID
-		                errorMsg.add(errorMessage);
-		                readQueue.add(errorMsg);	                
+		                ArrayList errorMsg = new ArrayList();                 	                
 		                break;
 		                            
 		            case 'W':   // Feedback from 'send WP' command
@@ -505,21 +493,15 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 		                //WORKS but there are some more values inside the array?
 		                //http://forum.mikrokopter.de/topic-post441164.html#post441164
 		                //DOES NOT GIVE NUMBER OF WP BUT THE INDEX OF THE LAST WP??
-		                	                
+		                //TODO TEST & HAVE LOOK
 		                WPIndex = new u8("WPIndex");
 		                WPIndex.loadFromInt(decodedDataFrame, dataPointer);
-		                //System.out.println("WPIndex (u8): " + WPIndex.value); 
-		                ArrayList sendWP = new ArrayList(); 
-		                
-		                sendWP.add("sendWP_ACK");	//set ID
-		                sendWP.add(WPIndex.value); //number of WP
-		                readQueue.add(sendWP);
-		                
+		                System.out.println("WPIndex (u8): " + WPIndex.value); 
+		           
 		                break;
 		                
 		            case 'X':   // Feedback from 'request WP' command
 		                System.out.println("<X> Returns: # Waypoints in memory; WP index; WP struct");	                
-		                System.out.println("<Debug> Number of bytes decoded: "+numBytesDecoded); //debug
 		                
 		                /** -- Data Structure--
 		                 * 
@@ -530,45 +512,27 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 		          	               
 		                numberOfWP = new u8("numberOfWP");
 		                numberOfWP.loadFromInt(decodedDataFrame, dataPointer);
-		                //System.out.println("NymberOfWP (u8): " + numberOfWP.value);
+		                System.out.println("NymberOfWP (u8): " + numberOfWP.value);
 		                
 		                WPIndex = new u8("WPIndex");
 		                WPIndex.loadFromInt(decodedDataFrame, dataPointer+1);
-		                //System.out.println("WPIndex (u8): " + WPIndex.value);
+		                System.out.println("WPIndex (u8): " + WPIndex.value);
 		                
 		             
 		                Waypoint_t WP= new Waypoint_t("WP");
 		                WP.loadFromInt(decodedDataFrame, dataPointer+2);
+		                System.out.println("Latitude: "+WP.Position.Latitude.value);
+		                System.out.println("Longitude: "+WP.Position.Longitude.value);
+		                System.out.println("Altitude: "+WP.Position.Altitude.value);
+		                System.out.println("Latitude: "+WP.Position.Latitude.value);
+		                System.out.println("Speed: "+WP.Speed.value);
+		                System.out.println("Altituderate: "+WP.AltitudeRate.value);
+		                System.out.println("ToleranceRadius: "+WP.ToleranceRadius.value);
 		                
-	                	ArrayList reqWP = new ArrayList(); 	
-	                	
-	                	reqWP.add("reqWP");	//set ID
-	                	reqWP.add(numberOfWP.value); //number of WP
-	                	reqWP.add(WPIndex.value); //WP index
-	                	
-	                	reqWP.add(WP.Position.Latitude.value); 
-	                	reqWP.add(WP.Position.Longitude.value); 
-	                	reqWP.add(WP.Position.Altitude.value); 
-	                	reqWP.add(WP.Position.Status.value); 
-	                	
-	                	reqWP.add(WP.Heading.value);
-	                	reqWP.add(WP.ToleranceRadius.value);
-	                	reqWP.add(WP.HoldTime.value);
-	                	reqWP.add(WP.Event_Flag.value);
-	                	reqWP.add(WP.Index.value);
-	                	reqWP.add(WP.Type.value);
-	                	reqWP.add(WP.WP_EventChannelValue.value);
-	                	reqWP.add(WP.AltitudeRate.value);               	
-	                	reqWP.add(WP.Speed.value);
-	                	reqWP.add(WP.CamAngle.value);
-	                	reqWP.add(WP.name.toString());
-	
-		                readQueue.add(reqWP);
-		                              
 		                break;    
 	
 		            case 'O':   // Feedback from 'request OSD Values'
-		                //System.out.println("<O> Recieving OSD Data");
+		                System.out.println("<O> Recieving OSD Data");
 		                
 		                NaviData_t navi = new NaviData_t();
 		                navi.loadFromInt(decodedDataFrame,dataPointer); 
@@ -961,12 +925,12 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 
 	public void initwritetoport() {
         // initwritetoport() assumes that the port has already been opened and
-        // initialized by "public nulltest()"
 
         try {
             // get the outputstream
             outputStream = serialPort.getOutputStream();
         } catch (IOException e) {
+        	System.out.println("initwritetoport failed while trying to get outputstream");
         }
 
         try {
