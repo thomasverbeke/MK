@@ -22,7 +22,10 @@ public class SpeedOfCommTest {
 		//=> serialtest: Ideal candidate; because we can identify the frame by the echoPattern
 		
 		//disable all other comm
-		//
+		//send a simple serial wait a number of ms
+		//resend another
+		
+		
 		
 	}
 }

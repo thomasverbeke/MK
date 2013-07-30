@@ -11,9 +11,9 @@ import java.util.LinkedList;
  */
 public class Waypoint_t extends c_int {
 	
-    public static final int POINT_TYPE_INVALID = 255;
-    public static final int POINT_TYPE_WP = 0;
-    public static final int POINT_TYPE_POI = 1;
+    public final int POINT_TYPE_INVALID = 255;
+    public final int POINT_TYPE_WP = 0;
+    public final int POINT_TYPE_POI = 1;
     
     public GPS_Pos_t Position;             	// the gps position of the waypoint, see ubx.h for details
     public s16 Heading;                    	// orientation, 0 no action, 1...360 fix heading, neg. = Index to POI in WP List 

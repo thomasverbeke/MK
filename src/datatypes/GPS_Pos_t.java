@@ -8,6 +8,11 @@ import java.util.LinkedList;
  * navictrl - v0.28i - ubx.h
  */
 public class GPS_Pos_t extends c_int {
+	
+		public final byte INVALID = 0x00;
+		public final byte NEWDATA = 0x01;
+		public final byte PROCESSED = 0x02;
+	
 		public s32 Longitude;		// in 1E-7 deg
 		public s32 Latitude;		// in 1E-7 deg
 		public s32 Altitude; 		// in mm

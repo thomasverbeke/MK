@@ -27,30 +27,63 @@ public class SerialWriter {
 		 	//redirect debug uart => 'u'
 		 	//new target positions => 's'
 		 	//request for the text of the error status => 'e'
-		 	//ftp command => 'f'
+		 	//ftp command => 'f' => new feature: as of yet undocumented but found inside the firmware. 
 		 	
+		 	case "errorText":
+		 		/** (NAVI) ERROR TEXT REQUSET **/
+		 		//encoder.send_command(2,'e',null);
+		 		
+		 		break;
+			 
+		 	case "sendTarget":
+		 		/** (NAVI) SEND TARGET POSITION**/
+		 		
+		 		/** question: what is difference between sending a target position and sending a waypoint?
+		 		 * 	answer: from looking at the firmware: not a lot of difference; beeptime is shorter (50vs500ms) and there is no check for MaxNumberOfWaypoints
+		 		 *  so the list is limited by the size of the array which is 101 big (100 WP max) (That's WP & POI combined).
+		 		 * **/
+	
+		 		Waypoint_t wp_target = new Waypoint_t("new target");
+		 		wp_target.Position.Longitude.value = 36827906; //1E-7 deg
+		 		wp_target.Position.Latitude.value = 510481055; //1E-7 deg
+		 		wp_target.Position.Altitude.value = 5038; //mm
+		 		wp_target.Position.Status.value = wp_target.Position.NEWDATA;
+		 		wp_target.Heading.value = 0; // orientation, 0 no action, 1...360 fix heading, neg. = Index to POI in WP List 
+		 		wp_target.ToleranceRadius.value = 10; // in meters, if the MK is within that range around the target, then the next target is triggered
+		 		wp_target.HoldTime.value = 2; // in seconds, if the was once in the tolerance area around a WP, this time defines the delay before the next WP is triggered
+		 		wp_target.Event_Flag.value = 1;// future implementation
+		 		wp_target.Index.value = 1; // to indentify different waypoints, workaround for bad communications PC <-> NC; start from 1!
+		 		wp_target.Type.value = wp_target.POINT_TYPE_WP;// typeof Waypoint 
+		 		wp_target.WP_EventChannelValue.value=100;//
+		 		wp_target.AltitudeRate.value = 30;	// rate to change the setpoint
+		 		wp_target.Speed.value = 30;// rate to change the Position
+		 		wp_target.CamAngle.value = 0;// Camera servo angle
+	    		
+	    		//encoder.send_command(2,'s',wp_target.getAsInt());
+		 		break;
+		 
 		    case "sendWP":
 		    	//We define make a waypoint with some default data for testing
 		    	
 	    		/** (NAVI) SEND WAYPOINT **/
 	    		
-	    		Waypoint_t newWP = new Waypoint_t("new WP");
-	    		newWP.Position.Longitude.value = 36827906; //1E-7 deg
-	    		newWP.Position.Latitude.value = 510481055; //1E-7 deg
-	    		newWP.Position.Altitude.value = 5038; //mm
-	    		newWP.Position.Status.value = 1; //NEWDATA = 0x01
-	    		newWP.Heading.value = 0; // orientation, 0 no action, 1...360 fix heading, neg. = Index to POI in WP List 
-	    		newWP.ToleranceRadius.value = 10; // in meters, if the MK is within that range around the target, then the next target is triggered
-	    		newWP.HoldTime.value = 2; // in seconds, if the was once in the tolerance area around a WP, this time defines the delay before the next WP is triggered
-	    		newWP.Event_Flag.value = 1;// future implementation
-	    		newWP.Index.value = 1; // to indentify different waypoints, workaround for bad communications PC <-> NC
-	    		newWP.Type.value = 0;// typeof Waypoint 
-	    		newWP.WP_EventChannelValue.value=100;//
-	    		newWP.AltitudeRate.value = 30;	// rate to change the setpoint
-	    		newWP.Speed.value = 30;// rate to change the Position
-	    		newWP.CamAngle.value = 0;// Camera servo angle
+	    		Waypoint_t wp = new Waypoint_t("new WP");
+	    		wp.Position.Longitude.value = 36827906; //1E-7 deg
+	    		wp.Position.Latitude.value = 510481055; //1E-7 deg
+	    		wp.Position.Altitude.value = 5038; //mm
+	    		wp.Position.Status.value = wp.Position.NEWDATA;
+	    		wp.Heading.value = 0; // orientation, 0 no action, 1...360 fix heading, neg. = Index to POI in WP List 
+	    		wp.ToleranceRadius.value = 10; // in meters, if the MK is within that range around the target, then the next target is triggered
+	    		wp.HoldTime.value = 2; // in seconds, if the was once in the tolerance area around a WP, this time defines the delay before the next WP is triggered
+	    		wp.Event_Flag.value = 1;// future implementation
+	    		wp.Index.value = 1; // to indentify different waypoints, workaround for bad communications PC <-> NC; start from 1!
+	    		wp.Type.value = wp.POINT_TYPE_WP;// typeof Waypoint 
+	    		wp.WP_EventChannelValue.value=100;//
+	    		wp.AltitudeRate.value = 30;	// rate to change the setpoint
+	    		wp.Speed.value = 30;// rate to change the Position
+	    		wp.CamAngle.value = 0;// Camera servo angle
 	    		
-	    		//encoder.send_command(2,'w',newWP.getAsInt());
+	    		//encoder.send_command(2,'w',wp.getAsInt());
 		    	
 
 		    	break;
