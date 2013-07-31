@@ -493,12 +493,12 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 		                break;
                   
 		            case 'W':   // Feedback from 'send WP' command
-		                System.out.println("<W> Feedback from 'send WP' command - # Waypoints in memory");
+		                System.out.println("<W> Feedback from 'send WP' command - # Waypoint Index");
 		                //System.out.println("<W> Returns: # Waypoints in memory");
-		                //WORKS but there are some more values inside the array?
 		                //http://forum.mikrokopter.de/topic-post441164.html#post441164
-		                //DOES NOT GIVE NUMBER OF WP BUT THE INDEX OF THE LAST WP??
-		                //TODO TEST & HAVE LOOK
+		                //Returns the index of the WP that was added => see http://svn.mikrokopter.de/ : waypoints.c PointList_SetAt method
+		                //Clearly this is a mistake in the documentation
+		                
 		                WPIndex = new u8("WPIndex");
 		                WPIndex.loadFromInt(decodedDataFrame, dataPointer);
 		                System.out.println("WPIndex (u8): " + WPIndex.value); 
@@ -537,96 +537,21 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 		                break;    
 	
 		            case 'O':   // Feedback from 'request OSD Values'
+		            	/** We will only print limited amount of data **/
 		                System.out.println("<O> Recieving OSD Data");
 		                
 		                NaviData_t navi = new NaviData_t();
 		                navi.loadFromInt(decodedDataFrame,dataPointer); 
-		                //navi.HomePosition.printOut();
-		                //navi.CurrentPosition.printOut();
-		               
-		                //TODO send this data to front end
-		                //build up object
-		                ArrayList OSD = new ArrayList(); 
-		                
-		                /** CurrentPosition **/
-		                OSD.add("OSD");
-		              
-		                OSD.add(navi.CurrentPosition.Latitude.value); // in 1E-7 deg
-		                OSD.add(navi.CurrentPosition.Longitude.value); // in 1E-7 deg
-		                OSD.add(navi.CurrentPosition.Altitude.value); // in mm
-		                OSD.add(navi.CurrentPosition.Status.value); // validity of data {INVALID,NEWDATA,PROCESSED}
-		                /** TargetPosition **/
-		                OSD.add(navi.TargetPosition.Latitude.value); // in 1E-7 deg
-		                OSD.add(navi.TargetPosition.Longitude.value); // in 1E-7 deg
-		                OSD.add(navi.TargetPosition.Altitude.value); // in mm
-		                OSD.add(navi.TargetPosition.Status.value); // validity of data {INVALID,NEWDATA,PROCESSED}
-		                /** HomePosition **/
-		                OSD.add(navi.HomePosition.Latitude.value); // in 1E-7 deg
-		                OSD.add(navi.HomePosition.Longitude.value); // in 1E-7 deg
-		                OSD.add(navi.HomePosition.Altitude.value); // in mm
-		                OSD.add(navi.HomePosition.Status.value); // validity of data {INVALID,NEWDATA,PROCESSED}
-		              
-		                OSD.add(navi.WaypointIndex.value);  // index of current waypoints running from 0 to WaypointNumber-1
-		                OSD.add(navi.WaypointNumber.value); // number of stored waypoints
-		                OSD.add(navi.SatsInUse.value);   // number of satellites used for position solution
-		                OSD.add(navi.Altimeter.value);	 // hight according to air pressure
-		                OSD.add(navi.Variometer.value);	 // climb(+) and sink(-) rate
-		                OSD.add(navi.FlyingTime.value);	// FlyingTime in seconds
-		                OSD.add(navi.UBat.value);	// Battery Voltage in 0.1 Volts
-		                OSD.add(navi.GroundSpeed.value); // speed over ground in cm/s (2D)
-		                OSD.add(navi.Heading.value); // current flight direction in deg as angle to north
-		                OSD.add(navi.CompassHeading.value);  // current compass value in deg
-		                OSD.add(navi.AngleNick.value);// current Nick angle in 1 deg
-		                OSD.add(navi.AngleRoll.value);  // current Rick angle in 1deg
-		                OSD.add(navi.RC_Quality.value);	// RC_Quality
-		               
-		                	                
-		                // ------- FCStatusFlags -------------------------------
-		                //FC_STATUS_MOTOR_RUN                     0x01
-		                //FC_STATUS_FLY                           0x02
-		                //FC_STATUS_CALIBRATE                     0x04
-		                //FC_STATUS_START                         0x08
-		                //FC_STATUS_EMERGENCY_LANDING             0x10
-		                //FC_STATUS_LOWBAT                        0x20
-		                //FC_STATUS_VARIO_TRIM_UP                 0x40
-		                //FC_STATUS_VARIO_TRIM_DOWN               0x80
-		                
-		                OSD.add(navi.FCFlags.value); // Flags from FC
-		                
-		                // ------- NCFlags -------------------------------------
-		                // NC_FLAG_FREE                            0x01
-		                // NC_FLAG_PH                              0x02
-		                // NC_FLAG_CH                              0x04
-		                // NC_FLAG_RANGE_LIMIT                     0x08
-		                // NC_FLAG_NOSERIALLINK                    0x10
-		                // NC_FLAG_TARGET_REACHED                  0x20
-		                // NC_FLAG_MANUAL                          0x40
-		                // NC_FLAG_GPS_OK                          0x80
-		                
-		                OSD.add(navi.NCFlags.value); // Flags from NC		                
-		                OSD.add(navi.Errorcode.value); // 0 --> okay
-		                OSD.add(navi.OperatingRadius.value); // current operation radius around the Home Position in m
-		                OSD.add(navi.TopSpeed.value);   // velocity in vertical direction in cm/s
-		                OSD.add(navi.TargetHoldTime.value); // time in s to stay at the given target, counts down to 0 if target has 
-		               
-		                // ------- FCStatusFlags2 ------------------------------
-		                //FC_STATUS2_CAREFREE_ACTIVE              0x01
-		                //FC_STATUS2_ALTITUDE_CONTROL_ACTIVE      0x02
-		                //FC_STATUS2_FAILSAFE_ACTIVE              0x04
-		                //FC_STATUS2_OUT1                         0x08
-		                //FC_STATUS2_OUT2                         0x10
-		                //FC_STATUS2_RES1                         0x20
-		                //FC_STATUS2_RES2                         0x40
-		                //FC_STATUS2_RES3                         0x80
-		                
-		                OSD.add(navi.FCStatusFlags2.value); // StatusFlags2 (since version 5 added)
-		                OSD.add(navi.SetpointAltitude.value); // setpoint for altitude
-		                OSD.add(navi.Current.value); // actual current in 0.1A steps
-		                OSD.add(navi.Gas.value);
-		                OSD.add(navi.UsedCapacity.value); // used capacity in mAh
-		                OSD.add(navi.Version.value);
-		                readQueue.add(OSD);
-		                                
+		             
+		                System.out.println("Version: "+navi.Version.value);
+		                System.out.println("CurrentPosition: (lat)"+navi.CurrentPosition.Latitude.value+" (lng) "+navi.CurrentPosition.Longitude.value+" (alt) "+navi.CurrentPosition.Altitude.value+" (status)" +navi.CurrentPosition.Status.value);
+		                System.out.println("TargetPosition: (lat)"+navi.TargetPosition.Latitude.value+" (lng) "+navi.TargetPosition.Longitude.value+" (alt) "+navi.TargetPosition.Altitude.value+" (status)" +navi.TargetPosition.Status.value);
+		                System.out.println("HomePosition: (lat)"+navi.HomePosition.Latitude.value+" (lng) "+navi.HomePosition.Longitude.value+" (alt) "+navi.HomePosition.Altitude.value+" (status)" +navi.HomePosition.Status.value);
+		                System.out.println("SatsInUse: "+navi.SatsInUse.value);
+		                System.out.println("Altimeter: "+navi.Altimeter.value);
+		                System.out.println("Heading: "+navi.Heading.value);
+		                System.out.println("Errorcode: "+navi.Errorcode.value);
+		                   
 		                break;
 		                
 		            case 'C':   // Feedback from 'set 3D data interval'
