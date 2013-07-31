@@ -27,7 +27,7 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 	/** The main purpose of the class is to setup the serial connection with the MK.
 	 *  While also allowing for some functions to be used externally. 
 	 *  In some debug/test situations it might come in handy to manually assemble packets,...  **/
-	
+		
 	static CommPortIdentifier portId;
 	static CommPortIdentifier saveportId;
 	SerialPort serialPort;
@@ -113,6 +113,7 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 	           // System.exit(0);
 	      
 	        } else {  	
+	        	 /** see config.h  on http://svn.mikrokopter.de/ for UART settings **/
 	        	 portId = portMap.get(defaultPort);
 	             
 	             //open the port with: Name, TimeOut (timeout in msec)
@@ -414,7 +415,7 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
     public static String[] names = new String[32];
     public static int name_counter = 0;
     
-    
+	
     /** decode_buffer method
      * @param dataFrame encoded dataFrame
      * 
@@ -472,25 +473,25 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 				switch (decodedDataFrame[2]){
 					//NAVI-CTRL
 		            case 'Z':   // Serial link test
-		                System.out.println("<Z>Serial Link Test");
-		                
-		                u16 _echoPattern = new u16("loaded");
-		                _echoPattern.loadFromInt(decodedDataFrame, dataPointer);
-		                
+		                System.out.println("<Z>Serial Link Test");	                
+		                u16 echoPattern = new u16("echoPattern");
+		                echoPattern.loadFromInt(decodedDataFrame, dataPointer);	                
 		                System.out.println("<Z> Returns: EchoPattern");		                
-		                System.out.println("u16: " + _echoPattern.value);
+		                System.out.println("u16: " + echoPattern.value);
 
 		                break;    
 		                            
 		            case 'E':   // Feedback from Error Text Request; Error Str from Navi
 		                System.out.println("<E> Returns: Error Str from NaviCtrl");
-		                
-		                char errorMessage= (char) decodedDataFrame[dataPointer];
-		                System.out.println(errorMessage);
-		                
-		                ArrayList errorMsg = new ArrayList();                 	                
+		                //TODO Test this
+		                /** Data is probably just an int[] of which every character has to be cast individually to a char
+		                 * 	Perhaps it is advised to make add a function. 
+		                 * **/
+		                //char errorMessage= (char) decodedDataFrame[dataPointer];
+		                String errorMessage = convertMessage(decodedDataFrame,dataPointer);    
+		                System.out.println(errorMessage);		                             	                
 		                break;
-		                            
+                  
 		            case 'W':   // Feedback from 'send WP' command
 		                System.out.println("<W> Feedback from 'send WP' command - # Waypoints in memory");
 		                //System.out.println("<W> Returns: # Waypoints in memory");
@@ -926,6 +927,15 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 		
 	}
 
+	/** Convert the char[] type to a string for Error Message String frame type**/
+	public String convertMessage (int[] decodedDataFrame, int dataPointer){
+    	String message = "";
+    	//start at position 3!
+    	for (int i=dataPointer; i<decodedDataFrame.length; i++){
+            message += (char) decodedDataFrame[i];
+        }
+		return message;
+    }
 
 	public void initwritetoport() {
         // initwritetoport() assumes that the port has already been opened and

@@ -8,11 +8,13 @@ import datatypes.u16;
 import datatypes.u8;
 
 public class Start {
+	
 	 public static void main(String[] args) throws IOException { 
 	        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 	        System.out.println("MK CMDLINE APP");
 	        System.out.println("Enter Command");
 	        SerialReader reader = null;
+
 	        while (true){
 		        String s = br.readLine();
 		        
@@ -54,7 +56,7 @@ public class Start {
 		        	
 		        } else if (s.equals("encode")){
 		//ENCODE 
-		        	
+		        
 		        	
 		        } else if (s.equals("decode")){
 		//DECODE        	

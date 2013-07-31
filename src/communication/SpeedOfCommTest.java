@@ -1,6 +1,10 @@
 package communication;
 
-import java.util.logging.Logger;
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 
 public class SpeedOfCommTest {
 	/** 
@@ -24,10 +28,25 @@ public class SpeedOfCommTest {
 		//=> serialtest: Ideal candidate; because we can identify the frame by the echoPattern
 		
 		//disable all other comm
-		//send a simple serial wait a number of ms
+		//send a simple serial;
+		//wait a number of ms
 		//resend another
 		
-		Logger logger = Logger.getLogger("mylogger");
+		//
+	
+		Writer writer = null;
+
+		try {
+		    writer = new BufferedWriter(new OutputStreamWriter(
+		          new FileOutputStream("report.txt"), "utf-8"));
+	  		      writer.write("Speed Com Test");
+		} catch (IOException ex){
+			System.out.println("Something went wrong");
+		} finally {
+		   try {
+			   writer.close();
+		   } catch (Exception ex) {}
+		}
 		
 	}
 }
