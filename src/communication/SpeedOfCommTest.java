@@ -31,8 +31,7 @@ public class SpeedOfCommTest {
 		//send a simple serial;
 		//wait a number of ms
 		//resend another
-		
-		//
+
 	
 		Writer writer = null;
 

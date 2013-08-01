@@ -713,17 +713,9 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 			                 * byte 1-end: char[80] DisplayText
 			                */
 			                
-			                displayMessage="";
-			               
-			                //iterate trough all the data; start from the dataPointer
-			                for (int i=dataPointer; i<numBytesDecoded; i++){
-			                   displayMessage += (char)decodedDataFrame[i];    
-			                }
-			             
-			                ArrayList reqDisplay = new ArrayList(); 		
-			                reqDisplay.add("reqDisplay");	//set ID; 
-			                reqDisplay.add(displayMessage);  		               
-			                readQueue.add(reqDisplay); 
+			            
+			                String displayMessage_h = convertMessage(decodedDataFrame, dataPointer);
+			                System.out.println("Display Message: "+displayMessage_h);
 			                
 			                break;
 			                
@@ -733,34 +725,20 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 			                /** -- Data Structure--
 			                 * 
 			                 * byte 1: u8 MenuItem
-			                 * byte 2: u8 MaxMenuItem
+			                 * byte 2: u8 MaxMenuItem   => WHAT IS THIS??
 			                 * byte 3: char[80] Display Text
 			                */
 			                
 			                u8 menuItem = new u8("MenuItem");
 			                menuItem.loadFromInt(decodedDataFrame, dataPointer);
-			                //menuItem.printOut();
+			                System.out.println("MenuItem: " +menuItem.value);
 			                
 			                u8 maxMenuItem = new u8("MaxMenuItem");
 			                maxMenuItem.loadFromInt(decodedDataFrame, dataPointer+1);
-			                //maxMenuItem.printOut();
+			                System.out.println("maxMenuItem: " +maxMenuItem.value);
 			                
-			                displayMessage="";
-			               
-			                //iterate & build up displayMessage
-			                for (int i=dataPointer+2; i<numBytesDecoded; i++){
-			                   displayMessage = displayMessage+((char)decodedDataFrame[i]);    
-			                }
-			                  
-			                //System.out.println(displayMessage);  
-			               
-			                ArrayList reqMenuDisplay = new ArrayList(); 		
-			                reqMenuDisplay.add("reqMenuDisplay");	//set ID; 
-			                reqMenuDisplay.add(menuItem); //MenuItem
-			                reqMenuDisplay.add(maxMenuItem); //MaxMenuItem
-			                reqMenuDisplay.add(displayMessage); //Display Message
-			                
-			                readQueue.add(reqMenuDisplay); //analog label index	
+			                String displayMessage_l = convertMessage(decodedDataFrame, dataPointer+2);
+			                System.out.println("Display Message: "+displayMessage_l);
 			                
 			                break;
 	
@@ -770,18 +748,15 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 			                VersionInfo_t versionStruct = new VersionInfo_t("versioninfo");
 			                versionStruct.loadFromInt(decodedDataFrame, dataPointer);
 		   
-			                ArrayList versionInfo = new ArrayList(); 		
-			                versionInfo.add("versionInfo");	//set ID; 
-			                versionInfo.add(versionStruct.SWMajor.value); //SWMajor
-			                versionInfo.add(versionStruct.SWMinor.value); //SWMinor
-			                versionInfo.add(versionStruct.ProtoMajor.value); //ProtoMajor
-			                versionInfo.add(versionStruct.ProtoMinor.value); //ProtoMinor
-			                versionInfo.add(versionStruct.SWPatch.value); //SWPatch
-			                //TODO: Test this not sure this works
+			                System.out.println("SWMajor :"+ versionStruct.SWMajor.value);
+			                System.out.println("SWMinor :"+ versionStruct.SWMinor.value);
+			                System.out.println("ProtoMajor :"+ versionStruct.ProtoMajor.value);
+			                System.out.println("ProtoMajor :"+ versionStruct.ProtoMajor.value);  
+			                System.out.println("SWPatch :"+ versionStruct.SWPatch.value);
+			                System.out.println("HardwareError :"+ versionStruct.HardwareError.toString()); //TODO TEST
+			               
 			                //TODO Document hardwareError codes http://www.mikrokopter.de/ucwiki/en/SerialCommands/VersionStruct
-			                versionInfo.add(versionStruct.HardwareError.toString()); //HardwareError
-			                readQueue.add(versionInfo); 
-			                
+
 			                break;
 			                
 				    case 'D':   // Feedback from 'request debug Data'
@@ -794,9 +769,9 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 			                 * signed int Analog[32]
 			                */
 			               	
-			               	char[] status = new char[2];
-			               	status[0] = (char) decodedDataFrame[dataPointer];
-			               	status[1] = (char) decodedDataFrame[dataPointer+1];
+			               	String debug_status = "";
+			               	debug_status += (char) decodedDataFrame[dataPointer];
+			               	debug_status += (char) decodedDataFrame[dataPointer+1];
 			               	
 			               	int[] analog = new int[32];
 			               	
@@ -804,22 +779,36 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 			                for (int i=2;i<34;i++){                 
 			                	analog[i] = (int) decodedDataFrame[dataPointer+i];
 			                }
-			               
-			                ArrayList analogData = new ArrayList(); 		
-			                analogData.add("analogData");	//set ID; 
-			                analogData.add(status); 
-			                for (int i=0;i<analog.length; i++){
-			                	analogData.add(analog);	
-			                }
-
-			                readQueue.add(analogData); 
+			                
+			                //TODO Better handle this
+			                
+			                System.out.println("Debug data recieved");
 			                
 			                break; 
 			                
 				    case 'G':   // Feedback from 'Get External control'	
 			                System.out.println("<G> Returns: ExternControl Struct");
-			                //TODO Have to implement this
-			                //queue.add("feedback from get external control");
+			                
+			                //So what is the difference between this command and ExternCtrl? Since this is basically and empty frame (ack with externctrl struct)
+			                //we can assume this enables the extern control?
+			                //TODO Test
+			                /** 
+			                 *  unsigned char Digital[2];
+			                 *  unsigned char RemoteTasten;
+			                 *  signed char   Nick;
+			                 *  signed char   Roll;
+			                 *  signed char   Gier;
+			                 *  unsigned char Gas;
+			                 *  signed char   Hight;
+			                 *  unsigned char free;
+			                 *  unsigned char Frame; => can be used as an ACK ID; this one is send back
+			                 *  unsigned char Config; 
+			                 *  
+			                 * **/
+			              
+			                //TODO Test this conversion; maybe have a system remember the value and check against it
+			                //TODO Make a datatype externctrl (not a priority right now)
+			                
 				    		break;
 				}
 				break;
@@ -834,6 +823,7 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 	}
 
 	/** Convert the char[] type to a string for Error Message String frame type**/
+	//TODO Add length parameter? Is this needed?
 	public String convertMessage (int[] decodedDataFrame, int dataPointer){
     	String message = "";
     	//start at position 3!

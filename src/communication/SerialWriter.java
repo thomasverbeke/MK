@@ -1,5 +1,7 @@
 package communication;
 
+import java.io.OutputStream;
+
 import datatypes.GPS_Pos_t;
 import datatypes.Waypoint_t;
 import datatypes.s16;
@@ -12,9 +14,14 @@ public class SerialWriter {
 	 *  We abstract the communication layer from the encoding/CRC check aspects to a simple
 	 *  sendCommand function. For this simple command line application data send will be filled in by the application
 	 *  to keep things simple.**/
+	Encoder encoder;
 	
-	public SerialWriter(){
-		
+	public SerialWriter(OutputStream writer){
+		if(writer!=null){
+			encoder = new Encoder(writer);
+		} else {
+			System.out.println("Error: no outputstream defined in serialwriter constructor");
+		}
 	}
 	
 	/** NOTE: Documentation talks about 4s subscription while firmware 8s?
@@ -36,7 +43,7 @@ public class SerialWriter {
 		    	System.out.println("<SERIALWRITER>DebugReqInterval");
 	    
 		    	/** Labels of Analog values request (for all 32 channels) **/
-		    	//encoder.send_command(2,'a',0);
+		    	encoder.send_command(2,'a',0);
 		    	
 		    	//TODO Change this; SYSTEM FOR THIS? We need to request one after the other....
 		    	break;
