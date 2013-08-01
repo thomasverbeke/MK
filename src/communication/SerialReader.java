@@ -413,6 +413,7 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 	
 	public static int[] analog = new int[32];
     public static String[] names = new String[32];
+    //TODO remove name_counter
     public static int name_counter = 0;
     
 	
@@ -473,16 +474,15 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 				switch (decodedDataFrame[2]){
 					//NAVI-CTRL
 		            case 'Z':   // Serial link test
-		                System.out.println("<Z>Serial Link Test");	                
+		                System.out.println("<nZ>Serial Link Test");	                
 		                u16 echoPattern = new u16("echoPattern");
-		                echoPattern.loadFromInt(decodedDataFrame, dataPointer);	                
-		                System.out.println("<Z> Returns: EchoPattern");		                
-		                System.out.println("u16: " + echoPattern.value);
+		                echoPattern.loadFromInt(decodedDataFrame, dataPointer);	                                
+		                System.out.println("u16 (echoPattern): " + echoPattern.value);
 
 		                break;    
 		                            
 		            case 'E':   // Feedback from Error Text Request; Error Str from Navi
-		                System.out.println("<E> Returns: Error Str from NaviCtrl");
+		                System.out.println("<nE> Returns: Error Str from NaviCtrl");
 		                //TODO Test this
 		                /** Data is probably just an int[] of which every character has to be cast individually to a char
 		                 * 	Perhaps it is advised to make add a function. 
@@ -493,7 +493,7 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 		                break;
                   
 		            case 'W':   // Feedback from 'send WP' command
-		                System.out.println("<W> Feedback from 'send WP' command - # Waypoint Index");
+		                System.out.println("<nW> Feedback from 'send WP' command - # Waypoint Index");
 		                //System.out.println("<W> Returns: # Waypoints in memory");
 		                //http://forum.mikrokopter.de/topic-post441164.html#post441164
 		                //Returns the index of the WP that was added => see http://svn.mikrokopter.de/ : waypoints.c PointList_SetAt method
@@ -506,7 +506,7 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 		                break;
 		                
 		            case 'X':   // Feedback from 'request WP' command
-		                System.out.println("<X> Returns: # Waypoints in memory; WP index; WP struct");	                
+		                System.out.println("<nX> Returns: # Waypoints in memory; WP index; WP struct");	                
 		                
 		                /** -- Data Structure--
 		                 * 
@@ -538,7 +538,7 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 	
 		            case 'O':   // Feedback from 'request OSD Values'
 		            	/** We will only print limited amount of data **/
-		                System.out.println("<O> Recieving OSD Data");
+		                System.out.println("<nO> Recieving OSD Data");
 		                
 		                NaviData_t navi = new NaviData_t();
 		                navi.loadFromInt(decodedDataFrame,dataPointer); 
@@ -555,28 +555,20 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 		                break;
 		                
 		            case 'C':   // Feedback from 'set 3D data interval'
-		                System.out.println("<C> Recieving 3D Data");
+		                System.out.println("<nC> Recieving 3D Data");
+		                /** We will only print limited amount of data **/
        
 		                Data3D_t data3D = new Data3D_t();
 		                data3D.loadFromInt(decodedDataFrame,dataPointer);
 
-		                //System.out.println("<O> Returns: Struct Data3D");
-	                	ArrayList set3DInterval = new ArrayList(); 	
-	                	
-	                	set3DInterval.add("Data3D");	//set ID
-	                	set3DInterval.add(data3D.AngleNick.value); // AngleNick in 0.1 deg
-		                set3DInterval.add(data3D.AngleRoll.value); // AngleRoll in 0.1 deg
-		                set3DInterval.add(data3D.Heading.value); // Heading in 0.1 deg
-		                set3DInterval.add(data3D.StickNick.value);  //Stick Nick
-		                set3DInterval.add(data3D.StickRoll.value); // Stick Roll
-		                set3DInterval.add(data3D.StickYaw.value); // Stick Yaw
-		                set3DInterval.add(data3D.StickGas.value); // Stick Gas
-		                readQueue.add(set3DInterval);
-		                
+		                System.out.println("AngleNick: "+data3D.AngleNick.value);// AngleNick in 0.1 deg
+		                System.out.println("AngleRoll: "+data3D.AngleRoll.value);// AngleRoll in 0.1 deg
+		                System.out.println("Heading: "+data3D.Heading.value); // Heading in 0.1 deg
+	
 		                break; 
 		            
 		            case 'J':   // Feedback from 'Set/Get NC-Parameter' (only set when when there is a value
-		                System.out.println("<J> Returns: ParameterId,Value");
+		                System.out.println("<nJ> Returns: ParameterId,Value");
 		                
 		                /** -- Data Structure--
 		                 * 
@@ -586,83 +578,83 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 		          	               
 		                parameterId = new u8("parameterId");
 		                parameterId.loadFromInt(decodedDataFrame, dataPointer);
-		                //System.out.println("Parameter Id (u8): " + parameterId.value);
+		                System.out.println("Parameter Id (u8): " + parameterId.value);
 		                
 		                parameterValue = new s16("WPIndex");
 		                parameterValue.loadFromInt(decodedDataFrame, dataPointer+1);
-		                //System.out.println("Parameter Value (s16): " + parameterValue.value);
-		             
-	                	ArrayList getsetNCParam = new ArrayList(); 	
-	                	
-	                	getsetNCParam.add("getsetNCParam");	//set ID
-	                	getsetNCParam.add(parameterId.value); // parameter ID
-	                	getsetNCParam.add(parameterValue.value); //parameter value
-
-		                readQueue.add(getsetNCParam);
-		                
+		                System.out.println("Parameter Value (s16): " + parameterValue.value);
+                
 		                break;   
 		    
 		            case 'K':   // Feedback from 'BL Ctrl Status'
-	
-		                BLData_t motorData = new BLData_t(12);
+		            	//TODO Handle different motors
+		                BLData_t motorData = new BLData_t();
 		                motorData.loadFromInt(decodedDataFrame, dataPointer);
-		                //motorData.printOut();
+		             
 		                
-		                System.out.println("<K> Recieving BL Ctrl Data (DC Motor "+motorData.Index.value+" Data)");
-		                
-		                motorList[motorCount] = motorData;
-		                
-		                //!! we only get data from 1 motor
-		                //TODO Is it the view or the model that needs to take care of this?
-		                //store in array
-		                if (motorCount != 5){
-		                    motorCount++;
-		                } else {
-		                    motorCount = 0;
-		                }
-		                
-	                	ArrayList BLCtrlStatus = new ArrayList(); 	
-	                	
-	                	BLCtrlStatus.add("MotorData");	//set ID
-	                	BLCtrlStatus.add(motorData.Index.value); //Index
-	                	BLCtrlStatus.add(motorData.Current.value);//Current
-	                	BLCtrlStatus.add(motorData.Temperature.value);//Temperature
-	                	BLCtrlStatus.add(motorData.MaxPWM.value);//MAXPW
-	                	BLCtrlStatus.add(motorData.State.value);//Status
-	                	//TODO Add status flags from documentation
-		                readQueue.add(BLCtrlStatus);		                
+		                System.out.println("<nK> Recieving BL Ctrl Data (DC Motor "+motorData.Index.value+" Data)");
+		                int motorID = (int) motorData.Index.value;
+		                motorList[motorID] = motorData;
+		                           
 		               break; 
+		               
+		            default: 
+			        	   System.out.println("Unsupported command recieved"); 
+			        	   System.out.println("CMD Id: "+decodedDataFrame[2]);
+			        	   break;
 					}
 				break;
 			case FC_ADDRESS:		//frame from Flight Ctrl
 				switch (decodedDataFrame[2]){
 					case 'T':   // Feedback from 'BL Ctrl Status'
 						//!!Empty ack frame
-		                System.out.println("<T>Motor Test");
-		                ArrayList motorTest = new ArrayList(); 		
-		                motorTest.add("motorTest");	//set ID; motorTest frame contains no data    
-		                readQueue.add(motorTest);
+		                System.out.println("<fT>Motor Test (empty frame)");
 		                
 		                break; 
 		                
 		            case 'P':   // Feedback from 'BL Ctrl Status'
-		            	//TODO Frame not empty; s16 array
-		                System.out.println("<P>Read PPM Channels");
-		                //queue.add("feedback from PPM Channels");
+		            	//TODO Test
+		                System.out.println("<fP>Read PPM Channels");
+		                //TODO There should be a constant somewhere containing the number of motors
+		                int numOfMotors=8;
+		                s16[] PPM_Array = new s16[numOfMotors];
+		                String PPM_out = "";
+		                for (int i=0; i<numOfMotors; i++){
+		                	s16 PPM_Data = new s16();
+		                	PPM_Data.loadFromInt(decodedDataFrame, dataPointer+i);
+		                	PPM_Array[i] = PPM_Data;
+		                	PPM_out += i + ": "+ PPM_Data.value + " ";
+		                }
+		                System.out.println(PPM_out);		                
 		                break; 
-	
+           
+		           case 'N':   // Feedback from 'Mixer Request'
+		        	   	//TODO Test
+		                System.out.println("<fN>Mixer request");
+		                //revision
+		                u8 MixerRevision = new u8();
+		                MixerRevision.loadFromInt(decodedDataFrame, dataPointer);
+	                	System.out.println("Revision: "+ MixerRevision.value);
 		                
-		           case 'N':   // Feedback from 'BL Ctrl Status'
-		        	   	//TODO Frame not empty; s16 array
-		                System.out.println("<N>Mixer request");
-		                //queue.add("Feedback from Mixer request");
+		                //name
+		                u8[] Name_Array = new u8[12];
+	                	String Mixer_out="";
+		                for (int i=0; i<12; i++){
+		                	u8 Name_Data = new u8();
+		                	Name_Data.loadFromInt(decodedDataFrame, dataPointer+i);
+		                	Name_Array[i] = Name_Data;
+		                	Mixer_out += Name_Data.value;
+		                }
+		                System.out.println("Name: "+Mixer_out);
+		                
+		                //table
+		                u8 MixerTable = new u8();
+		                //TODO Add mixer table [16][4]      
 		                break; 
 		                
 		           default: 
-		        	   System.out.println("Unsupported command recieved");
-		        	   //print command
-		        	   System.out.println("Data: 1:"+decodedDataFrame[1] + " 2:"+(char)decodedDataFrame[2]);
-		        	   //queue.add("Unsupported command recieved");
+		        	   System.out.println("<f> Unsupported command recieved"); 
+		        	   System.out.println("CMD Id: "+decodedDataFrame[2]);
 		        	   break;
 				}
 				//break;
@@ -680,48 +672,37 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 			                
 			                u8 analogLabelIndex = new u8("AnalogLabelIndex");
 			            	analogLabelIndex.loadFromInt(decodedDataFrame, dataPointer);
-			            	label = "";
-		            	
-							for (int i=dataPointer+1; i<numBytesDecoded; i++){
-								label += (char)decodedDataFrame[i];    
-							}
+			            	System.out.println("Label Index: "+analogLabelIndex.value);
+			            			            	
+			            	String analogLabelText = convertMessage(decodedDataFrame, dataPointer+1);
+			            	System.out.println("Analog Label: " + analogLabelText);
 			            	
-							//System.out.println("<Debug> Index: "+ analogLabelIndex.value + " Label: "+ label);
-							//TODO convert index to int?
-			                names[name_counter]+=label;
-			                name_counter++; 
-			                
-			                if (name_counter != 32){
-			                	//ask for next label
-			                	//TODO may give problems; encoder not implemented yet
-			                	//TODO should add better system to ensure good data
-			                	//Encode encoder;
-								//try {
-									//encoder = new Encode(serialPort.getOutputStream());
-									//encoder.send_command(0,'a',name_counter);
-								//} catch (IOException e) {
-									// TODO Auto-generated catch block
-								//	System.out.println("Sending serial command failed");
-								//	e.printStackTrace();
-								//}
-			                }
-			                
-			                System.out.println("<A> Recieving Analog Channel Label" + analogLabelIndex.value);
-			                
-			                ArrayList analogLabel = new ArrayList(); 		
-			                analogLabel.add("analogLabel");	//set ID; 
-			                analogLabel.add(analogLabelIndex.value);  
-			                analogLabel.add(label);  
-			                readQueue.add(analogLabel); //analog label index	
+			            	int convIndex = (int) analogLabelIndex.value;
+			                names[convIndex]=analogLabelText;
+			            
 			                break;     
 			                
 				    case 'B':   // Feedback from 'External Control'
-			                System.out.println("<B> Frame: char,echo of Extern ctrl frame as confirmation");
-			                ArrayList externCtrl = new ArrayList(); 		
-			                externCtrl.add("externCtrl");	//set ID;   
-			                //TODO Implement extern ctrl struct: not documented online; look up source code
-			                readQueue.add(externCtrl); 
-			                //Digital, RemoteTasten, Nick, Roll, Gier, Gas, Hight, Free, Frame, Config
+			                System.out.println("<B> Frame: unsigned char,echo of externCtrlStruct.Frame");
+			                
+			                /** 
+			                 *  unsigned char Digital[2];
+			                 *  unsigned char RemoteTasten;
+			                 *  signed char   Nick;
+			                 *  signed char   Roll;
+			                 *  signed char   Gier;
+			                 *  unsigned char Gas;
+			                 *  signed char   Hight;
+			                 *  unsigned char free;
+			                 *  unsigned char Frame; => can be used as an ACK ID; this one is send back
+			                 *  unsigned char Config; 
+			                 *  
+			                 * **/
+			              
+			                //TODO Test this conversion; maybe have a system remember the value and check against it
+			                char Ext_frame = (char) decodedDataFrame[dataPointer];
+			                System.out.println("confirmation: " +Ext_frame);
+			                
 				    		break;
 			           
 				    case 'H':   // Feedback from 'Request Display/LCD Data'	  1               

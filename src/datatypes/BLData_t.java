@@ -17,13 +17,13 @@ public class BLData_t extends c_int {
 	public u8 MaxPWM;		// read back from BL -> is less than 255 if BL is in current limit, not running (250) or starting (40)
     public u8 State;		// 7 bit for I2C error counter, highest bit indicates if motor is present
 	
-    public BLData_t(int motor_index) {
+    public BLData_t() {
 
-        Index = new u8(motor_index + "Index");
-        Current = new u8(motor_index + "Current");
-        Temperature = new u8(motor_index + "Temperature");
-        MaxPWM = new u8(motor_index + "MaxPWM");
-        State = new u8(motor_index + "State");
+        Index = new u8("Index");
+        Current = new u8("Current");
+        Temperature = new u8("Temperature");
+        MaxPWM = new u8("MaxPWM");
+        State = new u8("State");
 
         allAttribs = new LinkedList<c_int>();
         allAttribs.add(Index);
