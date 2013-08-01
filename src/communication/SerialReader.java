@@ -286,7 +286,7 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 					@Override
 					public void run() {
 						// TODO Auto-generated method stub
-						decode_buffer(RxdBuffer_work);
+						handleFrame(RxdBuffer_work);
 					}
             		
             	});
@@ -417,12 +417,12 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
     public static int name_counter = 0;
     
 	
-    /** decode_buffer method
+    /** handleFrame method
      * @param dataFrame encoded dataFrame
      * 
      * main workhorse of the system: differentiate commands and act accordingly
      * **/
-	public void decode_buffer(int[] dataFrame) {
+	public void handleFrame(int[] dataFrame) {
 		//TODO implement adding to the queue for each element
 		String data = "New data has arrived";
 		//queue.add(data);
@@ -441,7 +441,7 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
         
         /**
 		if (!NewDataRecieved){
-			System.out.println("NewDataRecieved (inside decode_buffer): " + NewDataRecieved );
+			System.out.println("NewDataRecieved (inside handleFrame): " + NewDataRecieved );
 			return;
 		}
 		

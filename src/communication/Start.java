@@ -64,7 +64,7 @@ public class Start {
 		        	int[] dataFrame = new int [10];
 		   
 		        	
-		        	reader.decode_buffer(dataFrame);
+		        	reader.handleFrame(dataFrame);
 		        		
 		        } else if (s.equals("exit")){
 		//EXIT
