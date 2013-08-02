@@ -12,6 +12,7 @@
 
 package communication;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -72,7 +73,7 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 	 *  List ports
 	 *  Connect trough default port with MK hardware.
 	 * **/
-	public void Listen(String port) throws Exception {
+	public OutputStream Listen(String port) throws Exception {
 			getPorts();
 			isUSB =false; //TODO change isUSB implementation?
 			
@@ -92,7 +93,7 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 	            defaultPort = "/dev/cu.usbserial-*";// "/dev/cu.usbserial-* >> SHOULD BE REPLACED!!
 	        } else {
 	            System.out.println("Sorry, your operating system is not supported");
-	            return;
+	            return null;
 	        }
 
 	        //no port set -> take default port
@@ -109,7 +110,7 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 	        if (!portMap.keySet().contains(defaultPort)) {
 	            System.out.println("port " + defaultPort + " not found.");
 	            System.out.println("Could not connect with default or chosen port");
-	            return;
+	            return null;
 	           // System.exit(0);
 	      
 	        } else {  	
@@ -136,15 +137,11 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 	             
 	             //start a new blocking thread that's going to read or blocking output buffer
 	             
-	             /**
-	             Thread thread = new Thread(new SerialWriter(serialPort.getOutputStream(),event));
-	     		 thread.start();
-	             **/
+	             readThread = new Thread(this);
+	             readThread.start(); 
+	             
+	             return serialPort.getOutputStream();
 	        }     
-	
-        readThread = new Thread(this);
-        readThread.start(); 
-		
 	}
 
 	public void run() {
@@ -466,6 +463,8 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
          * NC address = 'a' + 2 -> ascii 'c' or decimal 99
          * 
          **/
+		
+		//TODO Add handler for SystemTime
 		
 		decodedDataFrame[1] = decodedDataFrame[1] - 'a';  //removing 'a'
 		

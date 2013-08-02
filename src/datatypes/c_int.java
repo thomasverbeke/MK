@@ -11,7 +11,7 @@ public abstract class c_int {
     public int length = 0;
     public long value = 0;
     public String name;
-    protected Integer minValue;
+    protected Integer minValue; //protected means world has no access but subclass does
     protected Integer maxValue;
     
     //linked list is not synchronized!!

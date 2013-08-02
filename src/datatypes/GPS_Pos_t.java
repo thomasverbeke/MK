@@ -27,6 +27,8 @@ public class GPS_Pos_t extends c_int {
 	        Longitude = new s32(wp_name + " Longitude");// in 1E-7 deg
 	        Latitude = new s32(wp_name + " Latitude");// in 1E-7 deg
 	        Altitude = new s32(wp_name + " Altitude"); // in mm
+	        Altitude.minValue = 300; //not below 0.3 m?
+	        Altitude.maxValue = 50000; //not above 50m?        
 	        Status = new u8(wp_name + " Status"); // validity of data
 	        allAttribs = new LinkedList<c_int>();
 	        allAttribs.add(Longitude);

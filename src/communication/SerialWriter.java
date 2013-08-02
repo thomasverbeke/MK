@@ -34,13 +34,13 @@ public class SerialWriter {
 		 	
 		 	case "version":
 		 		//break is missing in the firmware; so it doesn't matter what address this frame is given (we take 2 for NaviCtrl)
-		 		//encoder.send_command(2,'v',null);
+		 		encoder.send_command(2,'v',null);
 			 break;
 			 
 		    	
-		    case "DebugReqNameInterval":
+		    case "DebugReqName":
 		    	/** (NAVI) SET LABELS DEBUG INTERVAL**/
-		    	System.out.println("<SERIALWRITER>DebugReqInterval");
+		    	System.out.println("<SERIALWRITER>DebugReq");
 	    
 		    	/** Labels of Analog values request (for all 32 channels) **/
 		    	encoder.send_command(2,'a',0);
@@ -52,7 +52,7 @@ public class SerialWriter {
 		    	u8 interval_DebugData = new u8("interval");
 		    	//we subscribe for a 0.5 second interval (50*10); ABO will end after 8 seconds
 		    	interval_DebugData.value = Long.valueOf(50).longValue(); //PASSING 0 STOPS THE STREAM
-		    	//encoder.send_command(2,'d',interval_DebugData.getAsInt());
+		    	encoder.send_command(2,'d',interval_DebugData.getAsInt());
 		    	break;
 		 
 		 	case "ftpCmd":
@@ -88,9 +88,11 @@ public class SerialWriter {
 		 		 *  }
 		 		 *  
 		 		 * **/
+		    	
+		    	//TODO Implement
 		 		break;
 			 
-		 	case "BLStatus":
+		 	case "BLStatusInterval":
 		 		/** (NAVI) BL CTRL STATUS 
 		 		 * 	BL Status contains Current, Temperature, MaxPWM, Status Data about the motors
 		 		 * **/
@@ -99,13 +101,14 @@ public class SerialWriter {
 	    		
 	    		//we subscribe for a 0.5 second interval (50*10); ABO will end after 8 seconds
 	    		interval_BL.value = Long.valueOf(50).longValue(); //PASSING 0 STOPS THE STREAM
-	    		//encoder.send_command(2,'k',interval_3D.getAsInt());
+	    		encoder.send_command(2,'k',interval_BL.getAsInt());
 		 		
 		 		break;
 		 	
 		 	case "setParam" : 
 		 		/** (NAVI) SET/GET NC PARAMETER **/
 		 		System.out.println("<SERIALWRITER>Set Param");
+		 		//TODO
 		 		//this is DISABLED; changing parameters while in operation could cause MK to CRASH!
 		 		//if you want to implement this: create a special type
 		 		//u8 get(0)/set(1)
@@ -119,9 +122,9 @@ public class SerialWriter {
 		 		/** (NAVI) REDIRECT UART **/
 		 		System.out.println("<SERIALWRITER>Redirect Uart");
 			 	//param: 1 byte 0x00 for FC; OxO1 for MK3MAG; 0x02 for MKGPS according to http://www.mikrokopter.de/ucwiki/en/SerialProtocol
-			 	//int[] param = new int[0];
-			 	//param[0] = 0x00;
-			 	//encoder.send_command(2,'u',param);
+			 	int[] param = new int[0];
+			 	param[0] = 0x00;
+			 	encoder.send_command(2,'u',param);
 			 	//use magic packet to return to navi
 			 	break;
 		 
@@ -130,7 +133,7 @@ public class SerialWriter {
 		 		 * 
 		 		 * Respons is a char[] containing the error text**/
 		 		System.out.println("<SERIALWRITER>errorText");
-		 		//encoder.send_command(2,'e',null);
+		 		encoder.send_command(2,'e',null);
 		 		
 		 		break;
 			 
@@ -160,7 +163,7 @@ public class SerialWriter {
 		 		wp_target.Speed.value = 30;// rate to change the Position
 		 		wp_target.CamAngle.value = 0;// Camera servo angle
 	    		
-	    		//encoder.send_command(2,'s',wp_target.getAsInt());
+	    		encoder.send_command(2,'s',wp_target.getAsInt());
 		 		break;
 		 
 		    case "sendWP":
@@ -186,7 +189,7 @@ public class SerialWriter {
 	    		wp.Speed.value = 30;// rate to change the Position
 	    		wp.CamAngle.value = 0;// Camera servo angle
 	    		
-	    		//encoder.send_command(2,'w',wp.getAsInt());
+	    		encoder.send_command(2,'w',wp.getAsInt());
 		    	break;
 		    	
 		    case "sendWPlist":
@@ -202,8 +205,9 @@ public class SerialWriter {
 		    	
 	    		u8 WP = new u8("New WP");
 	    		//Get WP 0
-	    		WP.value = Long.valueOf(0).longValue();				    		
-	    		//encoder.send_command(2,'x',WP.getAsInt());
+	    		WP.value = Long.valueOf(1).longValue();	//0 for index is invalid; count starts at 1	
+	    		//TODO Test
+	    		encoder.send_command(2,'x',WP.getAsInt());
 		    	
 		    	break;
 		    	
@@ -214,7 +218,18 @@ public class SerialWriter {
 	    		u16 echo = new u16("echo");
 	    		//366 is our testvalue
 	    		echo.value=Long.valueOf("366").longValue();
-	    		//encoder.send_command(2,'z',echo.getAsInt());		    	
+	    		encoder.send_command(2,'z',echo.getAsInt());		    	
+		    	break;
+		    	
+		    case "SystemTimeInterval" :
+		    	/** (NAVI) SYSTEM TIME INTERVAL **/
+		    	System.out.println("<SERIALWRITER>System time Interval");
+		    	u8 interval_time = new u8("interval");
+	    		
+	    		//we subscribe for a 0.5 second interval (50*10); ABO will end after 8 seconds
+		    	interval_time.value = Long.valueOf(50).longValue(); //PASSING 0 STOPS THE STREAM
+	    		encoder.send_command(2,'c',interval_time.getAsInt());
+		    	
 		    	break;
 		    	
 		    case "3DDataInterval":
@@ -225,7 +240,7 @@ public class SerialWriter {
 	    		
 	    		//we subscribe for a 0.5 second interval (50*10); ABO will end after 8 seconds
 	    		interval_3D.value = Long.valueOf(50).longValue(); //PASSING 0 STOPS THE STREAM
-	    		//encoder.send_command(2,'c',interval_3D.getAsInt());
+	    		encoder.send_command(2,'c',interval_3D.getAsInt());
 		
 		    	break;
 		    	
@@ -236,8 +251,19 @@ public class SerialWriter {
 	    		u8 interval_OSD = new u8("interval");
 	    		//we subscribe for a 0.5 second interval (50*10); ABO will end after 8 seconds
 	    		interval_OSD.value = Long.valueOf(50).longValue();
-	    		//encoder.send_command(2,'o',interval_OSD.getAsInt());
+	    		encoder.send_command(2,'o',interval_OSD.getAsInt());
 
+		    	break;
+		    	
+		    case "ReqDisplay" :
+		    	/** (COMON) REQUEST DISPLAY INTERVAL**/
+		    	System.out.println("<SERIALWRITER>Req Display (Line?)");	 
+		    	u8 remoteKey = new u8("line"); //what is this remote key? Display Line?
+		    	remoteKey.value = 1;
+		    	u8 intervalDisplay = new u8("interval");
+		    	intervalDisplay.value = Long.valueOf(50).longValue();	    	
+		    	encoder.send_command(2,'h',concatArray(remoteKey.getAsInt(), intervalDisplay.getAsInt()));
+		    	
 		    	break;
 		    	
 		    case "EngineTest":
@@ -246,13 +272,14 @@ public class SerialWriter {
 		    	System.out.println("<SERIALWRITER>Redirect Uart");	    	
 		    	
 			 	//param: 1 byte 0x00 for FC; OxO1 for MK3MAG; 0x02 for MKGPS according to http://www.mikrokopter.de/ucwiki/en/SerialProtocol
-			 	//int[] param = new int[0];
-			 	//param[0] = 0x00;
-			 	//encoder.send_command(2,'u',param);
+			 	int[] param_engine = new int[0];
+			 	param_engine[0] = 0x00;
+			 	encoder.send_command(2,'u',param_engine);
 			 	//use magic packet to return to navi
 		    	
 		    	System.out.println("<SERIALWRITER>EngineTest");
 
+		    	//TODO Add delay?
 	    		/** (FLIGHT) Engine Test **/
 	    		int val = 0;
 	    		String data = "10";
@@ -270,7 +297,7 @@ public class SerialWriter {
 	    		motor[3] = val;
 	    		motor[4] = val;
 	    		motor[5] = val;
-	    		//encoder.send_command(1,'t',motor);
+	    		encoder.send_command(1,'t',motor);
 
 	    		//TODO send magic pakket!!
 	    		
@@ -279,4 +306,21 @@ public class SerialWriter {
 		    	
 	    }
 	}
+	
+	 public static int[] concatArray(int[] a, int[] b) {
+	        if (a.length == 0) {
+	            return b;
+	        }
+	        if (b.length == 0) {
+	            return a;
+	        }
+	        int[] ret = new int[a.length + b.length];
+	        for (int i = 0; i < a.length; i++) {
+	            ret[i] = a[i];
+	        }
+	        for (int i = a.length; i < a.length + b.length; i++) {
+	            ret[i] = b[i - a.length];
+	        }
+	        return ret;
+	    }
 }

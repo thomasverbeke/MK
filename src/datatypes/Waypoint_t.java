@@ -36,7 +36,7 @@ public class Waypoint_t extends c_int {
     public static final int PROCESSED = 0x02;
     
     public Waypoint_t(String wp_name) {
-        super();
+        super(); //invoke superclass constructor
         name = wp_name;
         allAttribs = new LinkedList<c_int>();
         Position = new GPS_Pos_t(wp_name + " Position");
