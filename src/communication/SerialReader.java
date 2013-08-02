@@ -11,12 +11,20 @@
 //TODO Move decoding to another function; write a test class for it; encode data; 
 
 package communication;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import gnu.io.*;
@@ -40,6 +48,7 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 	ArrayList<String> list = new ArrayList<String>();
 	//Encode encoder;
 	BlockingQueue<ArrayList> writeQueue = new LinkedBlockingQueue<ArrayList>();
+	private boolean speedTest = false;
 	 
 	/** getPorts method
 	 * Mapping the (serial) ports to a HashMap
@@ -62,6 +71,24 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
         }
         return portMap;
     }
+	
+	public Map<u16,Long> map;
+	public Writer fileWriter = null;
+	/** We need to transfer the shared map**/
+	public void setSpeedTest (boolean bool, Map<u16,Long> map){
+		try {
+			fileWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("report_result.txt"), "utf-8"));
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (FileNotFoundException e) {
+			System.out.println("Failed to open new file to write speedTest results to");
+			e.printStackTrace();
+		}
+		
+		this.map = map;
+		speedTest = bool;
+	}
 
 	public SerialReader(){
 		
@@ -473,11 +500,28 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 				switch (decodedDataFrame[2]){
 					//NAVI-CTRL
 		            case 'Z':   // Serial link test
-		                System.out.println("<nZ>Serial Link Test");	                
-		                u16 echoPattern = new u16("echoPattern");
-		                echoPattern.loadFromInt(decodedDataFrame, dataPointer);	                                
-		                System.out.println("u16 (echoPattern): " + echoPattern.value);
-
+		            	u16 echoPattern = new u16("echoPattern");
+		            	echoPattern.loadFromInt(decodedDataFrame, dataPointer);	 
+		            	if (speedTest){
+		            		//read the map
+		            		long estimated = map.get(echoPattern) - System.nanoTime();
+		            		try {
+		            			//write to log
+		            			if (map.get(echoPattern) != null){
+		            				fileWriter.write("ID: "+echoPattern.value+" - send on: "+map.get(echoPattern)+" time difference: "+estimated);
+		            				map.remove(echoPattern);
+		            			} else {
+		            				System.out.println("Key not found in map; clearly something went wrong!!");
+		            			}
+			
+							} catch (IOException e) {
+								System.out.println("Failed to write speedTest result to file");
+								e.printStackTrace();
+							}
+		            	} else {
+			                System.out.println("<nZ>Serial Link Test");	                                             
+			                System.out.println("u16 (echoPattern): " + echoPattern.value);
+		            	}
 		                break;    
 		                            
 		            case 'E':   // Feedback from Error Text Request; Error Str from Navi
