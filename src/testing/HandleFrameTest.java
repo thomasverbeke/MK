@@ -1,4 +1,4 @@
-package test;
+package testing;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -9,6 +9,17 @@ import communication.SerialReader;
 import datatypes.VersionInfo_t;
 import datatypes.u16;
 
+/** 
+ * Test primarly to see if the main struct works as it should.
+ * 3 commands are send with different cmd_id & address
+ * The frames are encoded; put on the serialport which is just a buffer here
+ * after writing all the frames the buffer is transformed to an inputstream and data is decoded
+ * 
+ * This class allows testing of a big part of the code without having to start up a serial connection
+ * this is needed because debugging the serialport caused major crashes on my system probably because of 
+ * the RXTXcomm drivers used.
+ * 
+ * **/
 public class HandleFrameTest {
 	
     public static final byte ANY_ADDRESS = 0;
