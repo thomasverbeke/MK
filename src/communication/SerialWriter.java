@@ -276,6 +276,12 @@ public class SerialWriter {
 		encoder.send_magic_packet();
 	}
 	
+	/** This will return a frame in the int[] format for testing purposes; it behaves as a frame coming from the MK **/
+	public int[] makeACKFrame(char cmd){
+		
+		return null;
+	}
+	
 
 	/** NOTE: 
 	 * 	Also atm external control/ftp/set&getParam has not been implemented

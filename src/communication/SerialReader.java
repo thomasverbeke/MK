@@ -267,7 +267,7 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 	 *  Check http://www.mikrokopter.de/ucwiki/en/SerialProtocol for information about serial protocol
 	 * **/
 	
-	private void UART_vect(char SerialCharacter) {
+	public void UART_vect(char SerialCharacter) {
 
     	//overflow check
     	if (buf_ptr >= MAX_SIZE_BUFFER){
@@ -794,7 +794,7 @@ public class SerialReader extends CommunicationBase implements Runnable,SerialPo
 			                System.out.println("SWMajor :"+ versionStruct.SWMajor.value);
 			                System.out.println("SWMinor :"+ versionStruct.SWMinor.value);
 			                System.out.println("ProtoMajor :"+ versionStruct.ProtoMajor.value);
-			                System.out.println("ProtoMajor :"+ versionStruct.ProtoMajor.value);  
+			                System.out.println("ProtoMinor :"+ versionStruct.ProtoMinor.value);  
 			                System.out.println("SWPatch :"+ versionStruct.SWPatch.value);
 			                System.out.println("HardwareError :"+ versionStruct.HardwareError.toString()); //TODO TEST
 			               
