@@ -43,8 +43,7 @@ public class Encoder {
 
        //DataStorage.statusBar.uartTX.toggle();
 
-       writer = SerialReader.outputStream;
-       
+       //writer = SerialReader.outputStream;
        if (writer != null) {
            byte[] send_buff = new byte[3 + (params.length / 3 + (params.length % 3 == 0 ? 0 : 1)) * 4]; // 5=1*start_char+1*addr+1*cmd+2*crc
            send_buff[0] = '#';

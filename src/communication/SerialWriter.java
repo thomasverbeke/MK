@@ -36,7 +36,7 @@ public class SerialWriter {
 	
 	public void _version(){
 		//break is missing in the firmware; so it doesn't matter what address this frame is given (we take 2 for NaviCtrl)
-		encoder.send_command(2,'v',null);
+		encoder.send_command(2,'v',0);
 	}
 	
 	/** (NAVI) SET LABELS DEBUG INTERVAL
@@ -89,7 +89,7 @@ public class SerialWriter {
 	 **/
 	public void _errorText(){
  		System.out.println("<SERIALWRITER>errorText");
- 		encoder.send_command(2,'e',null);
+ 		encoder.send_command(2,'e',0);
 	}
 	
 	

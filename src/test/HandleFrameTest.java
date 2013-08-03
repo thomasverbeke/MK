@@ -18,15 +18,11 @@ public class HandleFrameTest {
     public static final byte MKOSD_ADDRESS = 4;
     public static final byte BL_ADDRESS = 5;
     
-	public HandleFrameTest(){
-		/** Instead of writing to a serial port we will write to a self-expanding buffer **/
+    public static void main(String[] args) throws IOException { 
+    	/** Instead of writing to a serial port we will write to a self-expanding buffer **/
 		ByteArrayOutputStream buffer_out = new ByteArrayOutputStream();
 		Encoder encoder = new Encoder(buffer_out);
 		SerialReader reader = new SerialReader();
-		
-		
-		/** Make a regular frame**/
-		encoder.send_command_nocheck((byte) NC_ADDRESS,'d', null);
 		
 		/** Test 1: NC - Z (=SerialTest ACK) **/
 		u16 echo = new u16("echo");
@@ -34,7 +30,7 @@ public class HandleFrameTest {
 		encoder.send_command(NC_ADDRESS,'Z',echo.getAsInt());	
 		
 		/** Test 2: FC - T (=Feedback from 'BL Ctrl Status)**/
-		encoder.send_command(FC_ADDRESS,'T',null);
+		encoder.send_command(FC_ADDRESS,'T',0);
 		
 		/** Test 3: ANY - V (=Version Info)**/
 		//just send it as empty
@@ -57,5 +53,5 @@ public class HandleFrameTest {
 		} catch (IOException ex) {
 			System.out.println("Something when wrong while reading buffer");
         }
-	}
+    }
 }
