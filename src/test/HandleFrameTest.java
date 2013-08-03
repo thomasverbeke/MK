@@ -55,7 +55,7 @@ public class HandleFrameTest {
 			
 			}
 		} catch (IOException ex) {
-			
+			System.out.println("Something when wrong while reading buffer");
         }
 	}
 }
