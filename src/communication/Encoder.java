@@ -92,7 +92,8 @@ public class Encoder {
                out += '\r';
                 
                System.out.println("DEBUG<encode(send_command_nocheck)> "+out);
-               //LogPanel.giveMessage(out, LogPanel.red);
+               //TODO Test this
+               Thread.sleep(100);
            } catch (Exception e) { // problem sending data to FC
         	   System.out.println("problem sending data");
            }
