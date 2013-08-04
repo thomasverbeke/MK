@@ -3,6 +3,7 @@ package communication;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 
 import datatypes.u16;
 import datatypes.u8;
@@ -13,66 +14,99 @@ public class Start {
 	        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 	        System.out.println("MK CMDLINE APP");
 	        System.out.println("Enter Command");
-	        SerialReader reader = null;
+	        SerialReader reader = null;	 
+	        OutputStream outStream;
 
 	        while (true){
-		        String s = br.readLine();
-		        
+		        String mainCmd = br.readLine();
+
 		        try {
 					reader = new SerialReader();
-					
-					u8 SatsInUse = new u8("SatsInUse"); 						// number of satellites used for position solution
-					SatsInUse.setValue(7);
-					SatsInUse.getAsInt();
-					
-					u16 GroundSpeed = new u16("GroundSpeed");
-					GroundSpeed.setValue(10);	// speed over ground in cm/s (2D)
-					GroundSpeed.getAsInt();
 					
 				} catch (Exception e) {
 					System.out.print("Error in serialReader");
 					e.printStackTrace();
 				}
 		        
-		        if (s.equals("help")){
+		        if (mainCmd.equals("help")){
 		        	System.out.println("Listing commands:");
 		        	System.out.println("*listen* start listening for incoming serial frames");
 		        	System.out.println("*send* send a frame to MK; ex to follow");
 		        	System.out.println("*encode* encodes a frame; ex to follow ");
 		        	System.out.println("*decode* decodes a frame; ex to follow ");
-		        } else if (s.equals("listen")){
+		        } else if (mainCmd.equals("listen")){
 		//LISTEN
-			        //list ports
+		        	System.out.println("Type in a port to listen to (or press enter for default)");
+		        	String listen = br.readLine();	        	
 		        	try {
-						reader.Listen(null);
-					} catch (Exception e) {
+		        		//open in new thread?
+		        		if (listen.equals("")){
+		        			outStream = reader.Listen(null);
+		        		} else {
+		        			outStream = reader.Listen(listen);
+		        		}
+		        		
+		        		//stay in loop until 
+					} catch (Exception e1) {
 						// TODO Auto-generated catch block
-						e.printStackTrace();
+						e1.printStackTrace();
+					}
+	
+		        } else if (mainCmd.equals("send")){
+		//SEND 		
+		        	System.out.println("Before sending we need to open a serial port");
+		        	System.out.println("Type in a port to listen to (or press enter for default)");
+		        	String listen = br.readLine();	        	
+		        	try {
+		        		//open in new thread?
+		        		if (listen.equals("")){
+		        			outStream = reader.Listen(null);
+		        		} else {
+		        			outStream = reader.Listen(listen);
+		        		}
+		        		
+		        		System.out.println("Enter the frametype you wish to test");
+		        		System.out.println("**FrameTypes**");
+		        		System.out.println("*version*");
+		        		System.out.println("*DebugReqName*");
+		        		System.out.println("*DebugReqDataInterval*");
+		        		System.out.println("*BLStatusInterval*");
+		        		System.out.println("*redirectUART*");
+		        		System.out.println("*errorText*");
+		        		System.out.println("*sendTarget*");
+		        		System.out.println("*sendWP*");
+		        		System.out.println("*serialTest*");
+		        		System.out.println("*systemTimeInterval*");
+		        		System.out.println("*3DDataInterval*");
+		        		System.out.println("*OSDDataInterval*");
+		        		System.out.println("*ReqDisplay*");
+		        		System.out.println("*EngineTest*");
+		
+		        		String send = br.readLine();	
+		        		SerialWriter writer = new SerialWriter(outStream);
+		        		writer.sendTestCommand(send);
+						
+					} catch (Exception e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
 					}
 		        	
-		        } else if (s.equals("send")){
-		//SEND 
-		        //when sending there is also a possibility to enable	
-		        	
-		        } else if (s.equals("encode")){
-		//ENCODE 
-		        
-		        	
-		        } else if (s.equals("decode")){
+		        } else if (mainCmd.equals("decode")){
 		//DECODE        	
+		        	System.out.println("Enter the frame you wish to decode");
+		        	String decode = br.readLine();	        	
 		        	
+		        	//TODO convert the String to an int[]
 		        	int[] dataFrame = new int [10];
-		   
-		        	
 		        	reader.handleFrame(dataFrame);
 		        		
-		        } else if (s.equals("exit")){
+		        } else if (mainCmd.equals("exit")){
 		//EXIT
 		        	System.out.println("Exiting");
 		        	return;
 		        } else {
 		        	System.out.println("Command not recognised");
-		        	System.out.println("input:"+s);
+		        	System.out.println("input:"+mainCmd);
 		        }
 		        
 		        try {
