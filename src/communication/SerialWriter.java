@@ -1,6 +1,8 @@
 package communication;
 
 import java.io.OutputStream;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import datatypes.Engine_t;
 import datatypes.GPS_Pos_t;
@@ -22,7 +24,16 @@ public class SerialWriter {
 	public final int POINT_TYPE_INVALID = 255;
     public final int POINT_TYPE_WP = 0;
     public final int POINT_TYPE_POI = 1;
-	
+    
+    /** Subscription Service
+     * 
+     * 	0 => DebugReqDataInterval
+     *  1 => BLStatusInterval
+     *  2 => SystemTimeInterval
+     *  3 => 3DDataInterval
+     *  4 => OSDInterval
+    **/
+	public int subscription[] = new int[5];
 	Encoder encoder;
 	
 	public SerialWriter(OutputStream writer){
@@ -57,6 +68,7 @@ public class SerialWriter {
 		u8 intervalDebugData = new u8("frameInterval");
 		intervalDebugData.value = frameInterval; 
     	encoder.send_command(2,'d',intervalDebugData.getAsInt());
+    	subscription[0] = frameInterval;
 	}
 	
 	/** (NAVI) BL CTRL STATUS 
@@ -68,6 +80,7 @@ public class SerialWriter {
 		u8 interval_BL = new u8("frameInterval");
 		interval_BL.value = frameInterval;
 		encoder.send_command(2,'k',interval_BL.getAsInt());
+		subscription[1] = frameInterval;
 	}
 	
 	/** (NAVI) REDIRECT UART 
@@ -200,6 +213,7 @@ public class SerialWriter {
     	u8 interval_time = new u8("interval");
     	interval_time.value = intervalST; //PASSING 0 STOPS THE STREAM
 		encoder.send_command(2,'t',interval_time.getAsInt());
+		subscription[2] = intervalST;
 	}
 	
 	/** (NAVI) SET 3D DATA INTERVAL
@@ -210,6 +224,7 @@ public class SerialWriter {
 		u8 interval_3D = new u8("interval");
 		interval_3D.value = interval3D; //PASSING 0 STOPS THE STREAM
 		encoder.send_command(2,'c',interval_3D.getAsInt());
+		subscription[3] = interval3D;
 	}
 	
 	/** (NAVI) SET OSD DATA INTERVAL
@@ -221,6 +236,7 @@ public class SerialWriter {
 		//we subscribe for a 0.5 second interval (50*10); ABO will end after 8 seconds
 		interval_OSD.value = Long.valueOf(50).longValue();
 		encoder.send_command(2,'o',interval_OSD.getAsInt());
+		subscription[4] = intervalOSD;
 
 	}
 	
@@ -466,6 +482,55 @@ public class SerialWriter {
 		    	
 	    }
 	}
+	
+	Timer timer; 
+	//start timer
+	public void startSubscriptionService(){
+		
+		timer = new Timer();
+		timer.scheduleAtFixedRate(new TimerTask() {
+			  public void run() {
+				//loop over the array and unless time is zero resend frame
+					
+					 /** Subscription Service
+				     * 
+				     * 	0 => DebugReqDataInterval
+				     *  1 => BLStatusInterval
+				     *  2 => SystemTimeInterval
+				     *  3 => 3DDataInterval
+				     *  4 => OSDInterval
+				    **/
+					
+					for (int i=0; i<subscription.length; i++){
+						if (subscription[i] == 0){
+							//do nothing
+						} else {
+							//resend frame
+							if (i==0){
+								_DebugReqDataInterval(subscription[i]);
+							} else if (i==1){
+								_BLStatusInterval(subscription[i]);
+							} else if (i==2){
+								_systemTimeInterval(subscription[i]);
+							} else if (i==3){
+								_3DDataInterval(subscription[i]);
+							} else if (i==4){
+								_OSDDataInterval(subscription[i]);
+							}
+						}
+					}
+			  }
+			}, 6000,6000);
+		
+	}
+	
+	//stop timer
+	public void stopSubscriptionService(){
+		timer.cancel();
+		
+	}
+	
+	
 	
 	 public static int[] concatArray(int[] a, int[] b) {
 	        if (a.length == 0) {

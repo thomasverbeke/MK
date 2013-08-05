@@ -48,7 +48,7 @@ public class Start {
 		        		
 		        		//stay in loop until 
 					} catch (Exception e1) {
-						// TODO Auto-generated catch block
+						System.out.println("Exception while trying to listen");
 						e1.printStackTrace();
 					}
 	
@@ -87,18 +87,20 @@ public class Start {
 		        		writer.sendTestCommand(send);
 						
 					} catch (Exception e1) {
-						// TODO Auto-generated catch block
+						System.out.println("Exception while trying to listen");
 						e1.printStackTrace();
 					}
 		        	
 		        } else if (mainCmd.equals("decode")){
 		//DECODE        	
 		        	System.out.println("Enter the frame you wish to decode");
-		        	String decode = br.readLine();	        	
+		        	Encoder encoder = new Encoder(null);
+		        	String decode = br.readLine();	 
+		        	char[] decodeArray = decode.toCharArray();
 		        	
-		        	//TODO convert the String to an int[]
-		        	int[] dataFrame = new int [10];
-		        	reader.handleFrame(dataFrame);
+		        	for (int i=0; i<decode.length(); i++) {
+                    	reader.UART_vect(decodeArray[i]);
+                    }
 		        		
 		        } else if (mainCmd.equals("exit")){
 		//EXIT
@@ -112,7 +114,7 @@ public class Start {
 		        try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
+					System.out.println("Exception while trying to sleep");
 					e.printStackTrace();
 				} 
 	        }   
